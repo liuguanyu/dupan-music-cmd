@@ -373,6 +373,26 @@ class InteractiveShell:
         def _(event):
             """清屏"""
             event.app.renderer.clear()
+            
+        # Tab键支持历史命令
+        @kb.add('tab')
+        def _(event):
+            """Tab键支持历史命令"""
+            buffer = event.app.current_buffer
+            
+            # 如果有补全项，使用默认的补全行为
+            if buffer.complete_state:
+                buffer.complete_next()
+            # 如果没有补全项且当前输入为空，使用历史命令
+            elif not buffer.text.strip():
+                # 获取历史记录
+                history = list(buffer.history.get_strings())
+                if history:
+                    # 使用最近的历史命令
+                    buffer.text = history[-1]
+            # 如果有文本但没有补全项，尝试开始补全
+            else:
+                buffer.start_completion(select_first=True)
         
         return kb
         
@@ -383,7 +403,7 @@ class InteractiveShell:
         console.print(Panel(f"欢迎使用百度盘音乐命令行播放器 v{__version__}", 
                            border_style="green"))
         console.print("输入 'help' 获取帮助，输入 'exit' 或 'quit' 退出")
-        console.print("提示: 按Tab键可以自动补全命令，方向键可以浏览历史记录")
+        console.print("提示: 按Tab键可以自动补全命令或使用最近的历史命令，方向键可以浏览历史记录")
         console.print("      Ctrl+R 搜索历史记录，Ctrl+Space 显示所有可能的补全")
         
         # 使用running标志控制shell运行
