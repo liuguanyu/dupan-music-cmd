@@ -13,6 +13,7 @@ from dupan_music import __version__
 from dupan_music.auth.cli import auth
 from dupan_music.api.cli import api
 from dupan_music.playlist.cli import playlist
+from dupan_music.player.cli import player
 from dupan_music.utils.logger import LOGGER
 
 
@@ -30,6 +31,7 @@ def main():
 main.add_command(auth)
 main.add_command(api)
 main.add_command(playlist)
+main.add_command(player)
 
 
 @main.command("version")

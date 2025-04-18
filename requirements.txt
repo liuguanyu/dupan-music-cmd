@@ -1,0 +1,9 @@
+click>=8.0.0
+requests>=2.25.0
+rich>=10.0.0
+qrcode>=7.0
+pillow>=8.0.0
+pydub>=0.25.0
+python-vlc>=3.0.0
+mutagen>=1.45.0
+tqdm>=4.60.0
