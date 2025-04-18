@@ -389,6 +389,28 @@ def human_readable_size(size_bytes: int) -> str:
 format_size = human_readable_size
 
 
+def format_time(seconds: int) -> str:
+    """
+    将秒数格式化为人类可读的时间格式
+    
+    Args:
+        seconds: 秒数
+        
+    Returns:
+        str: 格式化后的时间字符串，格式为 MM:SS
+    """
+    if seconds < 0:
+        return "00:00"
+    
+    minutes, seconds = divmod(int(seconds), 60)
+    hours, minutes = divmod(minutes, 60)
+    
+    if hours > 0:
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+    else:
+        return f"{minutes:02d}:{seconds:02d}"
+
+
 def split_file(file_path: str, chunk_size: int, output_dir: Optional[str] = None) -> List[str]:
     """
     分割文件

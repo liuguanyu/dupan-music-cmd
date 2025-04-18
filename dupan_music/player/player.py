@@ -12,7 +12,13 @@ import threading
 from typing import Dict, List, Optional, Union, Callable
 
 import vlc
-from pydub import AudioSegment
+try:
+    from pydub import AudioSegment
+    PYDUB_AVAILABLE = True
+except ImportError:
+    PYDUB_AVAILABLE = False
+    import soundfile as sf
+    import numpy as np
 from mutagen import File as MutagenFile
 
 from dupan_music.utils.logger import get_logger
@@ -522,14 +528,19 @@ class AudioPlayer:
             return None
         
         try:
-            # 加载音频
-            audio = AudioSegment.from_file(input_file)
-            
             # 创建输出文件
             output_file = get_temp_file(suffix=output_ext)
             
-            # 导出为指定格式
-            audio.export(output_file, format=output_format)
+            if PYDUB_AVAILABLE:
+                # 使用pydub加载音频
+                audio = AudioSegment.from_file(input_file)
+                # 导出为指定格式
+                audio.export(output_file, format=output_format)
+            else:
+                # 使用soundfile加载音频
+                data, samplerate = sf.read(input_file)
+                # 导出为指定格式
+                sf.write(output_file, data, samplerate, format=output_format.upper())
             
             return output_file
         except Exception as e:
