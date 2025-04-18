@@ -138,6 +138,16 @@ def play_playlist(playlist_name, index, mode):
     # 设置回调函数
     def on_play(item):
         console.print(f"[green]正在播放: {item.server_filename}[/green]")
+        # 重新显示控制提示，确保用户知道可用的控制命令
+        console.print("\n[bold]播放控制:[/bold]")
+        console.print("  [cyan]空格[/cyan]: 暂停/恢复")
+        console.print("  [cyan]n[/cyan]: 下一曲")
+        console.print("  [cyan]p[/cyan]: 上一曲")
+        console.print("  [cyan]+[/cyan]: 增加音量")
+        console.print("  [cyan]-[/cyan]: 减小音量")
+        console.print("  [cyan]u[/cyan]: 切换静音")
+        console.print("  [cyan]m[/cyan]: 切换播放模式")
+        console.print("  [cyan]q[/cyan]: 退出")
     
     def on_pause():
         console.print("[yellow]已暂停[/yellow]")
@@ -259,11 +269,11 @@ def handle_key_press(key, player):
         player.pause()
     elif key == 'n':
         # 下一曲
-        console.print("[yellow]正在切换下一曲...[/yellow]")
+        console.print("\n[yellow]正在切换下一曲...[/yellow]")
         player.next()
     elif key == 'p':
         # 上一曲
-        console.print("[yellow]正在切换上一曲...[/yellow]")
+        console.print("\n[yellow]正在切换上一曲...[/yellow]")
         player.prev()
     elif key == '+':
         # 增加音量
@@ -348,7 +358,7 @@ def next_track():
         console.print("[yellow]当前没有播放[/yellow]")
         return
     
-    console.print("[yellow]正在切换下一曲...[/yellow]")
+    console.print("\n[yellow]正在切换下一曲...[/yellow]")
     result = audio_player.next()
     
     if result:
@@ -365,7 +375,7 @@ def prev_track():
         console.print("[yellow]当前没有播放[/yellow]")
         return
     
-    console.print("[yellow]正在切换上一曲...[/yellow]")
+    console.print("\n[yellow]正在切换上一曲...[/yellow]")
     result = audio_player.prev()
     
     if result:
