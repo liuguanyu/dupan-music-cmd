@@ -9,7 +9,16 @@ import os
 import time
 import tempfile
 import threading
-from typing import Dict, List, Optional, Union, Callable
+import random
+from typing import Dict, List, Optional, Union, Callable, Literal
+from enum import Enum
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+播放器模块
+"""
+
 
 import vlc
 try:
@@ -50,12 +59,22 @@ class AudioPlayer:
         self.player = self.instance.media_player_new()
         self.media = None
         
+        # 播放模式枚举
+        class PlayMode(Enum):
+            """播放模式枚举"""
+            SEQUENTIAL = "sequential"  # 顺序播放
+            LOOP = "loop"              # 循环播放
+            RANDOM = "random"          # 随机播放
+        
+        self.PlayMode = PlayMode
+        
         # 播放状态
         self.current_playlist: Optional[Playlist] = None
         self.current_item: Optional[PlaylistItem] = None
         self.current_index: int = -1
         self.is_playing: bool = False
         self.is_paused: bool = False
+        self.play_mode: PlayMode = PlayMode.LOOP  # 默认循环播放
         
         # 临时文件
         self.temp_file: Optional[str] = None
@@ -489,6 +508,25 @@ class AudioPlayer:
         logger.info("停止播放")
         return True
     
+    def set_play_mode(self, mode: 'PlayMode') -> None:
+        """
+        设置播放模式
+        
+        Args:
+            mode: 播放模式
+        """
+        self.play_mode = mode
+        logger.info(f"设置播放模式: {mode.value}")
+    
+    def get_play_mode(self) -> str:
+        """
+        获取当前播放模式
+        
+        Returns:
+            str: 播放模式名称
+        """
+        return self.play_mode.value
+    
     def next(self) -> bool:
         """
         下一曲
@@ -500,10 +538,32 @@ class AudioPlayer:
             logger.warning("没有设置播放列表或播放列表为空")
             return False
         
-        # 计算下一曲索引
-        next_index = self.current_index + 1
-        if next_index >= len(self.current_playlist.items):
-            next_index = 0  # 循环播放
+        playlist_length = len(self.current_playlist.items)
+        
+        # 根据播放模式计算下一曲索引
+        if self.play_mode == self.PlayMode.SEQUENTIAL:
+            # 顺序播放：播放到最后一首后停止
+            next_index = self.current_index + 1
+            if next_index >= playlist_length:
+                logger.info("已是最后一首歌曲")
+                return False
+                
+        elif self.play_mode == self.PlayMode.LOOP:
+            # 循环播放：播放到最后一首后回到第一首
+            next_index = (self.current_index + 1) % playlist_length
+            
+        elif self.play_mode == self.PlayMode.RANDOM:
+            # 随机播放：随机选择一首歌曲
+            if playlist_length > 1:
+                # 避免连续播放同一首歌
+                next_index = random.randint(0, playlist_length - 1)
+                while next_index == self.current_index and playlist_length > 1:
+                    next_index = random.randint(0, playlist_length - 1)
+            else:
+                next_index = 0
+        else:
+            # 默认循环播放
+            next_index = (self.current_index + 1) % playlist_length
         
         # 播放下一曲
         result = self.play(next_index)
@@ -525,10 +585,32 @@ class AudioPlayer:
             logger.warning("没有设置播放列表或播放列表为空")
             return False
         
-        # 计算上一曲索引
-        prev_index = self.current_index - 1
-        if prev_index < 0:
-            prev_index = len(self.current_playlist.items) - 1  # 循环播放
+        playlist_length = len(self.current_playlist.items)
+        
+        # 根据播放模式计算上一曲索引
+        if self.play_mode == self.PlayMode.SEQUENTIAL:
+            # 顺序播放：播放到第一首后停止
+            prev_index = self.current_index - 1
+            if prev_index < 0:
+                logger.info("已是第一首歌曲")
+                return False
+                
+        elif self.play_mode == self.PlayMode.LOOP:
+            # 循环播放：播放到第一首后回到最后一首
+            prev_index = (self.current_index - 1) % playlist_length
+            
+        elif self.play_mode == self.PlayMode.RANDOM:
+            # 随机播放：随机选择一首歌曲
+            if playlist_length > 1:
+                # 避免连续播放同一首歌
+                prev_index = random.randint(0, playlist_length - 1)
+                while prev_index == self.current_index and playlist_length > 1:
+                    prev_index = random.randint(0, playlist_length - 1)
+            else:
+                prev_index = 0
+        else:
+            # 默认循环播放
+            prev_index = (self.current_index - 1) % playlist_length
         
         # 播放上一曲
         result = self.play(prev_index)

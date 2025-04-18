@@ -433,6 +433,44 @@ class TestAudioPlayer:
             assert result is True
             mock_play.assert_called_once_with(1)  # 应该跳到最后一项
     
+    def test_play_modes(self):
+        """测试播放模式"""
+        # 设置播放列表
+        self.player.set_playlist(self.test_playlist)
+        self.player.current_index = 1  # 最后一项
+        
+        # 测试顺序播放模式
+        self.player.set_play_mode(self.player.PlayMode.SEQUENTIAL)
+        assert self.player.get_play_mode() == "sequential"
+        
+        # 在顺序播放模式下，最后一首歌的下一首应该返回False
+        with patch.object(self.player, 'play', return_value=True) as mock_play:
+            result = self.player.next()
+            assert result is False  # 顺序播放模式下，最后一首的下一首应该返回False
+            mock_play.assert_not_called()  # 不应该调用play方法
+        
+        # 测试循环播放模式
+        self.player.set_play_mode(self.player.PlayMode.LOOP)
+        assert self.player.get_play_mode() == "loop"
+        
+        # 在循环播放模式下，最后一首歌的下一首应该是第一首
+        with patch.object(self.player, 'play', return_value=True) as mock_play:
+            result = self.player.next()
+            assert result is True
+            mock_play.assert_called_once_with(0)  # 应该回到第一项
+        
+        # 测试随机播放模式
+        self.player.set_play_mode(self.player.PlayMode.RANDOM)
+        assert self.player.get_play_mode() == "random"
+        
+        # 在随机播放模式下，应该随机选择一首歌
+        with patch.object(self.player, 'play', return_value=True) as mock_play:
+            with patch('random.randint', return_value=0) as mock_randint:  # 模拟随机数
+                result = self.player.next()
+                assert result is True
+                mock_play.assert_called_once_with(0)  # 应该播放随机选择的歌曲
+                mock_randint.assert_called_once_with(0, 1)  # 应该在0-1之间随机选择
+    
     def test_volume_control(self):
         """测试音量控制"""
         # 调用设置音量方法

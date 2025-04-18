@@ -142,6 +142,15 @@ def play_playlist(playlist_name, index):
     audio_player.on_prev_callback = on_prev
     audio_player.on_complete_callback = on_complete
     
+    # 显示当前播放模式
+    play_mode = audio_player.get_play_mode()
+    play_mode_display = {
+        "sequential": "顺序播放",
+        "loop": "循环播放",
+        "random": "随机播放"
+    }.get(play_mode, "未知模式")
+    console.print(f"[bold]当前播放模式:[/bold] [yellow]{play_mode_display}[/yellow]")
+    
     # 交互式控制
     console.print("\n[bold]播放控制:[/bold]")
     console.print("  [cyan]空格[/cyan]: 暂停/恢复")
@@ -149,6 +158,7 @@ def play_playlist(playlist_name, index):
     console.print("  [cyan]p[/cyan]: 上一曲")
     console.print("  [cyan]+[/cyan]: 增加音量")
     console.print("  [cyan]-[/cyan]: 减小音量")
+    console.print("  [cyan]m[/cyan]: 切换播放模式")
     console.print("  [cyan]q[/cyan]: 退出")
     
     # 显示进度条
@@ -241,6 +251,23 @@ def handle_key_press(key, player):
         # 减小音量
         current_volume = player.get_volume()
         player.set_volume(current_volume - 5)
+    elif key == 'm':
+        # 切换播放模式
+        current_mode = player.play_mode
+        modes = list(player.PlayMode)
+        current_index = modes.index(current_mode)
+        next_index = (current_index + 1) % len(modes)
+        next_mode = modes[next_index]
+        
+        player.set_play_mode(next_mode)
+        
+        # 显示当前播放模式
+        mode_names = {
+            "sequential": "顺序播放",
+            "loop": "循环播放",
+            "random": "随机播放"
+        }
+        console.print(f"[green]已切换到: {mode_names.get(next_mode.value, next_mode.value)}[/green]")
     elif key == 'q':
         # 退出
         player.stop()
@@ -337,6 +364,27 @@ def set_volume(level):
     else:
         console.print("[red]设置音量失败[/red]")
 
+@player.command("mode")
+@click.argument('mode', type=click.Choice(['sequential', 'loop', 'random']))
+def set_play_mode(mode):
+    """设置播放模式 (sequential: 顺序播放, loop: 循环播放, random: 随机播放)"""
+    audio_player = get_player()
+    
+    if not audio_player.is_playing:
+        console.print("[yellow]当前没有播放，设置的模式将在下次播放时生效[/yellow]")
+    
+    # 设置播放模式
+    mode_enum = getattr(audio_player.PlayMode, mode.upper())
+    audio_player.set_play_mode(mode_enum)
+    
+    # 显示当前播放模式
+    mode_names = {
+        "sequential": "顺序播放",
+        "loop": "循环播放",
+        "random": "随机播放"
+    }
+    console.print(f"[green]已设置播放模式: {mode_names.get(mode, mode)}[/green]")
+
 @player.command("status")
 def show_status():
     """显示当前播放状态"""
@@ -359,6 +407,14 @@ def show_status():
     volume = audio_player.get_volume()
     position = audio_player.get_position() * 100
     
+    # 获取播放模式
+    play_mode = audio_player.get_play_mode()
+    play_mode_display = {
+        "sequential": "顺序播放",
+        "loop": "循环播放",
+        "random": "随机播放"
+    }.get(play_mode, "未知模式")
+    
     # 获取元数据
     metadata = audio_player.get_metadata()
     
@@ -368,6 +424,7 @@ def show_status():
         f"[bold]路径:[/bold] {current_item.path}\n"
         f"[bold]大小:[/bold] {format_size(current_item.size)}\n"
         f"[bold]状态:[/bold] {status}\n"
+        f"[bold]播放模式:[/bold] {play_mode_display}\n"
         f"[bold]进度:[/bold] {format_time(current_time)} / {format_time(total_time)} ({position:.1f}%)\n"
         f"[bold]音量:[/bold] {volume}%",
         title="播放状态",
