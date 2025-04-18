@@ -168,11 +168,15 @@ def play_playlist(playlist_name, index):
                 total_time = audio_player.get_length()
                 
                 if total_time > 0:
+                    # 将毫秒转换为秒，因为format_time函数期望的是秒数
+                    current_time_sec = current_time / 1000
+                    total_time_sec = total_time / 1000
+                    
                     progress.update(
                         task, 
                         completed=current_time,
                         total=total_time,
-                        time=f"{format_time(current_time)} / {format_time(total_time)}",
+                        time=f"{format_time(current_time_sec)} / {format_time(total_time_sec)}",
                         volume=audio_player.get_volume()
                     )
                 
@@ -183,14 +187,35 @@ def play_playlist(playlist_name, index):
                         key = msvcrt.getch().decode('utf-8', errors='ignore')
                         handle_key_press(key, audio_player)
                 else:
-                    # 非阻塞方式获取按键
+                    # 非阻塞方式获取按键 - 改进版本
                     try:
+                        # 尝试使用termios和tty模块实现非阻塞输入
+                        import termios
+                        import tty
                         import select
-                        if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
-                            key = sys.stdin.read(1)
-                            handle_key_press(key, audio_player)
-                    except Exception as e:
-                        logger.error(f"获取按键失败: {str(e)}")
+                        
+                        # 保存原始终端设置
+                        old_settings = termios.tcgetattr(sys.stdin)
+                        try:
+                            # 设置终端为raw模式
+                            tty.setraw(sys.stdin.fileno(), termios.TCSANOW)
+                            
+                            # 检查是否有输入可读取
+                            if select.select([sys.stdin], [], [], 0)[0]:
+                                key = sys.stdin.read(1)
+                                handle_key_press(key, audio_player)
+                        finally:
+                            # 恢复终端设置
+                            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+                    except (ImportError, termios.error, AttributeError) as e:
+                        # 如果termios不可用，尝试使用select
+                        try:
+                            import select
+                            if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
+                                key = sys.stdin.read(1)
+                                handle_key_press(key, audio_player)
+                        except Exception as e:
+                            logger.error(f"获取按键失败: {str(e)}")
                 
                 time.sleep(0.1)
         except KeyboardInterrupt:
