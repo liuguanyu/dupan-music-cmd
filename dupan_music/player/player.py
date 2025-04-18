@@ -647,6 +647,32 @@ class AudioPlayer:
             int: 音量 (0-100)
         """
         return self.player.audio_get_volume()
+        
+    def toggle_mute(self) -> bool:
+        """
+        切换静音状态
+        
+        Returns:
+            bool: 是否成功
+        """
+        if not self.is_playing:
+            logger.warning("当前没有播放")
+            return False
+            
+        # 切换静音状态
+        is_muted = self.player.audio_get_mute()
+        self.player.audio_set_mute(not is_muted)
+        logger.info(f"静音状态: {'开启' if not is_muted else '关闭'}")
+        return True
+        
+    def is_muted(self) -> bool:
+        """
+        获取静音状态
+        
+        Returns:
+            bool: 是否静音
+        """
+        return self.player.audio_get_mute()
     
     def get_position(self) -> float:
         """

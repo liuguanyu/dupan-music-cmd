@@ -51,7 +51,8 @@ def player():
 @player.command("play")
 @click.argument('playlist_name')
 @click.option('--index', '-i', type=int, default=0, help='播放索引')
-def play_playlist(playlist_name, index):
+@click.option('--mode', '-m', type=click.Choice(['sequential', 'loop', 'random']), default=None, help='播放模式 (sequential: 顺序播放, loop: 循环播放, random: 随机播放)')
+def play_playlist(playlist_name, index, mode):
     """播放指定播放列表"""
     # 获取播放器实例
     audio_player = get_player()
@@ -80,6 +81,17 @@ def play_playlist(playlist_name, index):
     
     # 设置播放列表
     audio_player.set_playlist(playlist)
+    
+    # 如果指定了播放模式，则设置播放模式
+    if mode:
+        mode_enum = getattr(audio_player.PlayMode, mode.upper())
+        audio_player.set_play_mode(mode_enum)
+        mode_names = {
+            "sequential": "顺序播放",
+            "loop": "循环播放",
+            "random": "随机播放"
+        }
+        console.print(f"[green]已设置播放模式: {mode_names.get(mode, mode)}[/green]")
     
     # 显示播放列表信息
     console.print(Panel(f"[bold]{playlist.name}[/bold]\n{playlist.description}", 
