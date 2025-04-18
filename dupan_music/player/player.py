@@ -380,6 +380,15 @@ class AudioPlayer:
             logger.warning("没有设置播放列表或播放列表为空")
             return False
         
+        # 如果是随机播放模式，则始终随机选择一个索引，不考虑用户指定的索引
+        if self.play_mode == self.PlayMode.RANDOM:
+            playlist_length = len(self.current_playlist.items)
+            if playlist_length > 1:
+                # 随机选择一个索引
+                original_index = index
+                index = random.randint(0, playlist_length - 1)
+                logger.info(f"随机播放模式，从索引 {original_index} 随机选择到索引: {index}")
+        
         # 检查索引是否有效
         if index < 0 or index >= len(self.current_playlist.items):
             logger.warning(f"无效的播放索引: {index}")

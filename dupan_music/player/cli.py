@@ -92,6 +92,13 @@ def play_playlist(playlist_name, index, mode):
             "random": "随机播放"
         }
         console.print(f"[green]已设置播放模式: {mode_names.get(mode, mode)}[/green]")
+        
+        # 如果是随机播放模式，则随机选择一个索引
+        if mode.upper() == "RANDOM" and len(playlist.items) > 1:
+            import random
+            original_index = index
+            index = random.randint(0, len(playlist.items) - 1)
+            console.print(f"[green]随机播放模式，从索引 {original_index+1} 随机选择到索引: {index+1}[/green]")
     
     # 显示播放列表信息
     console.print(Panel(f"[bold]{playlist.name}[/bold]\n{playlist.description}", 

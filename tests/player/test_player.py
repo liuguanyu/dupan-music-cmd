@@ -471,6 +471,58 @@ class TestAudioPlayer:
                 mock_play.assert_called_once_with(0)  # 应该播放随机选择的歌曲
                 mock_randint.assert_called_once_with(0, 1)  # 应该在0-1之间随机选择
     
+    @patch('dupan_music.player.player.os.path.exists')
+    def test_play_random_mode(self, mock_exists):
+        """测试随机播放模式"""
+        # 设置模拟对象
+        mock_exists.return_value = True
+        self.mock_vlc_player.play.return_value = 0
+        
+        # 设置播放列表和随机播放模式
+        self.player.set_playlist(self.test_playlist)
+        self.player.set_play_mode(self.player.PlayMode.RANDOM)
+        
+        # 测试场景1：首次播放（使用默认索引0）
+        with patch('random.randint', return_value=1) as mock_randint:
+            with patch.object(self.player, '_download_file', return_value="/tmp/test.mp3"):
+                # 调用播放方法（使用默认索引0）
+                result = self.player.play()
+                
+                # 验证结果
+                assert result is True
+                # 应该随机选择索引1而不是默认的0
+                assert self.player.current_index == 1
+                assert self.player.current_item == self.test_playlist.items[1]
+                mock_randint.assert_called_once_with(0, 1)  # 应该在0-1之间随机选择
+        
+        # 测试场景2：指定非默认索引
+        self.player.current_index = -1  # 重置当前索引
+        with patch('random.randint', return_value=0) as mock_randint:
+            with patch.object(self.player, '_download_file', return_value="/tmp/test.mp3"):
+                # 调用播放方法（指定索引1）
+                result = self.player.play(1)
+                
+                # 验证结果
+                assert result is True
+                # 即使指定了索引1，在随机播放模式下也应该随机选择索引0
+                assert self.player.current_index == 0
+                assert self.player.current_item == self.test_playlist.items[0]
+                mock_randint.assert_called_once_with(0, 1)  # 应该在0-1之间随机选择
+        
+        # 测试场景3：非首次播放
+        self.player.current_index = 0  # 设置当前索引为0
+        with patch('random.randint', return_value=1) as mock_randint:
+            with patch.object(self.player, '_download_file', return_value="/tmp/test.mp3"):
+                # 调用播放方法（使用默认索引0）
+                result = self.player.play()
+                
+                # 验证结果
+                assert result is True
+                # 即使不是首次播放，在随机播放模式下也应该随机选择索引1
+                assert self.player.current_index == 1
+                assert self.player.current_item == self.test_playlist.items[1]
+                mock_randint.assert_called_once_with(0, 1)  # 应该在0-1之间随机选择
+    
     def test_volume_control(self):
         """测试音量控制"""
         # 调用设置音量方法
