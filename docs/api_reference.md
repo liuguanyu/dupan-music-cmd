@@ -9,8 +9,9 @@
 3. [播放列表模块 (playlist.py)](#3-播放列表模块-playlistpy)
 4. [播放器模块 (player.py)](#4-播放器模块-playerpy)
 5. [配置模块 (config.py)](#5-配置模块-configpy)
-6. [工具模块 (utils/)](#6-工具模块-utils)
-7. [命令行接口模块 (cli.py)](#7-命令行接口模块-clipy)
+6. [交互式Shell模块 (shell/)](#6-交互式shell模块-shell)
+7. [工具模块 (utils/)](#7-工具模块-utils)
+8. [命令行接口模块 (cli.py)](#8-命令行接口模块-clipy)
 
 ## 1. 认证模块 (auth.py)
 
@@ -556,7 +557,138 @@ def get_config_file(self) -> str
 - **描述**: 获取配置文件路径
 - **返回值**: 配置文件路径
 
-## 6. 工具模块 (utils/)
+## 6. 交互式Shell模块 (shell/)
+
+### InteractiveShell
+
+交互式shell类，提供命令行交互界面，支持命令自动补全、历史记录等功能。
+
+#### 构造函数
+
+```python
+def __init__(self)
+```
+
+- **描述**: 初始化交互式shell
+
+#### 方法
+
+##### show_version
+
+```python
+def show_version(self, *args, **kwargs)
+```
+
+- **描述**: 显示版本信息
+- **参数**
+  - `args`: 可变位置参数
+  - `kwargs`: 可变关键字参数
+
+##### show_help
+
+```python
+def show_help(self, *args, **kwargs)
+```
+
+- **描述**: 显示帮助信息
+- **参数**
+  - `args`: 可变位置参数
+  - `kwargs`: 可变关键字参数
+
+##### exit_shell
+
+```python
+def exit_shell(self, *args, **kwargs)
+```
+
+- **描述**: 退出shell
+- **参数**
+  - `args`: 可变位置参数
+  - `kwargs`: 可变关键字参数
+
+##### parse_command
+
+```python
+def parse_command(self, command_line: str) -> List[str]
+```
+
+- **描述**: 解析命令行
+- **参数**
+  - `command_line`: 命令行字符串
+- **返回值**: 解析后的命令参数列表
+
+##### execute_command
+
+```python
+def execute_command(self, command_args: List[str]) -> None
+```
+
+- **描述**: 执行命令
+- **参数**
+  - `command_args`: 命令参数列表
+
+##### get_prompt_message
+
+```python
+def get_prompt_message(self) -> HTML
+```
+
+- **描述**: 获取提示符消息
+- **返回值**: HTML格式的提示符
+
+##### _create_key_bindings
+
+```python
+def _create_key_bindings(self) -> KeyBindings
+```
+
+- **描述**: 创建键绑定
+- **返回值**: 键绑定对象
+
+##### run
+
+```python
+def run(self) -> None
+```
+
+- **描述**: 运行交互式shell
+
+### DupanMusicCompleter
+
+百度盘音乐命令行自动补全类，提供命令、参数、路径等自动补全功能。
+
+#### 构造函数
+
+```python
+def __init__(self)
+```
+
+- **描述**: 初始化自动补全器
+
+#### 方法
+
+##### get_completions
+
+```python
+def get_completions(self, document, complete_event)
+```
+
+- **描述**: 获取补全项
+- **参数**
+  - `document`: 文档对象
+  - `complete_event`: 补全事件
+- **返回值**: 补全项生成器
+
+### run_interactive_shell
+
+```python
+def run_interactive_shell()
+```
+
+- **描述**: 运行交互式shell
+- **返回值**: 无
+
+## 7. 工具模块 (utils/)
 
 ### logger.py
 
@@ -611,7 +743,7 @@ def is_audio_file(path: str, supported_formats: List[str] = None) -> bool
   - `supported_formats`: 支持的格式列表
 - **返回值**: 是否为音频文件
 
-## 7. 命令行接口模块 (cli.py)
+## 8. 命令行接口模块 (cli.py)
 
 ### auth/cli.py
 
@@ -830,6 +962,18 @@ def import_playlist(ctx, import_path)
 - **参数**
   - `ctx`: Click 上下文
   - `import_path`: 导入路径
+
+### shell/cli.py
+
+#### shell
+
+```python
+@click.command(help="启动交互式命令行界面")
+def shell()
+```
+
+- **描述**: 启动交互式命令行界面
+- **参数**: 无
 
 ### player/cli.py
 

@@ -12,14 +12,6 @@ import threading
 import random
 from typing import Dict, List, Optional, Union, Callable, Literal
 from enum import Enum
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-播放器模块
-"""
-
-
 import vlc
 try:
     from pydub import AudioSegment

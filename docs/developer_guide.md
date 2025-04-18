@@ -22,6 +22,7 @@
 - **播放列表模块 (playlist.py)**: 管理播放列表，包括创建、删除、添加文件、排序等操作。
 - **播放器模块 (player.py)**: 处理音频播放，包括播放控制、音量调节、进度显示等功能。
 - **配置模块 (config.py)**: 管理配置信息，包括加载、保存配置等操作。
+- **交互式Shell模块 (shell/)**: 提供交互式命令行界面，支持命令自动补全、历史记录等功能。
 
 ### 1.2 工具模块
 
@@ -35,6 +36,7 @@
 - **API命令行模块 (api/cli.py)**: 提供API相关的命令行接口。
 - **播放列表命令行模块 (playlist/cli.py)**: 提供播放列表相关的命令行接口。
 - **播放器命令行模块 (player/cli.py)**: 提供播放器相关的命令行接口。
+- **交互式Shell命令行模块 (shell/cli.py)**: 提供启动交互式shell的命令行接口。
 
 ### 1.4 模块依赖关系
 
@@ -47,10 +49,12 @@ main.py
   ├── playlist/cli.py
   │     ├── playlist.py
   │     └── api.py
-  └── player/cli.py
-        ├── player.py
-        ├── playlist.py
-        └── api.py
+  ├── player/cli.py
+  │     ├── player.py
+  │     ├── playlist.py
+  │     └── api.py
+  └── shell/cli.py
+        └── interactive.py
 ```
 
 ## 2. 开发环境设置
