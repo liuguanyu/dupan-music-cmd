@@ -50,6 +50,8 @@ setup(
         "python-vlc>=3.0.0",
         "mutagen>=1.45.0",
         "tqdm>=4.60.0",
+        "prompt_toolkit>=3.0.0",
+        "pygments>=2.10.0",
     ],
     entry_points={
         "console_scripts": [

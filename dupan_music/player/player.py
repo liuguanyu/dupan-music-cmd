@@ -139,8 +139,156 @@ class AudioPlayer:
             
             # 下载文件
             import requests
-            response = requests.get(download_url, stream=True)
-            response.raise_for_status()
+            # 检查URL是否包含d.pcs.baidu.com域名
+            is_pcs_domain = 'd.pcs.baidu.com' in download_url
+            
+            # 根据API文档要求，对于d.pcs.baidu.com域名必须设置User-Agent为pan.baidu.com
+            if is_pcs_domain:
+                # 对于d.pcs.baidu.com域名，只需要设置User-Agent为pan.baidu.com
+                headers = {
+                    'User-Agent': 'pan.baidu.com'
+                }
+                logger.debug("检测到d.pcs.baidu.com域名，设置极简请求头")
+                
+                # 确保URL包含access_token参数
+                from urllib.parse import urlparse, parse_qs, urlunparse, parse_qsl, urlencode
+                parsed_url = urlparse(download_url)
+                query_params = parse_qs(parsed_url.query)
+                
+                if 'access_token' not in query_params and self.api.auth and self.api.auth.auth_info.get('access_token'):
+                    access_token = self.api.auth.auth_info.get('access_token')
+                    
+                    # 重建URL，确保正确添加access_token
+                    query_dict = dict(parse_qsl(parsed_url.query))
+                    query_dict['access_token'] = access_token
+                    
+                    # 重新构建查询字符串
+                    new_query = urlencode(query_dict)
+                    
+                    # 重新构建完整URL
+                    download_url = urlunparse((
+                        parsed_url.scheme,
+                        parsed_url.netloc,
+                        parsed_url.path,
+                        parsed_url.params,
+                        new_query,
+                        parsed_url.fragment
+                    ))
+                    
+                    logger.debug(f"已添加access_token参数到下载链接")
+                elif 'access_token' in query_params:
+                    logger.debug(f"下载链接已包含access_token参数")
+                else:
+                    logger.warning(f"无法添加access_token参数，可能导致403错误")
+            else:
+                # 其他域名使用更全面的请求头
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+                    'Referer': 'https://pan.baidu.com/disk/home',
+                    'Accept': '*/*',
+                    'Accept-Encoding': 'gzip, deflate, br',
+                    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                    'Connection': 'keep-alive',
+                    'Sec-Fetch-Dest': 'empty',
+                    'Sec-Fetch-Mode': 'cors',
+                    'Sec-Fetch-Site': 'same-site',
+                    'Origin': 'https://pan.baidu.com',
+                    'DNT': '1',
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache',
+                    'Range': 'bytes=0-'
+                }
+                
+                # 添加Cookie如果有的话
+                if hasattr(self.api.session, 'cookies'):
+                    cookies_dict = requests.utils.dict_from_cookiejar(self.api.session.cookies)
+                    if cookies_dict:
+                        headers['Cookie'] = '; '.join([f'{k}={v}' for k, v in cookies_dict.items()])
+            
+            logger.debug(f"开始下载文件: {item.server_filename}")
+            logger.debug(f"下载链接: {download_url[:100]}...")  # 只记录链接的前100个字符
+            logger.debug(f"使用请求头: {headers}")
+            
+            # 确保对d.pcs.baidu.com域名的请求，User-Agent始终为pan.baidu.com
+            if 'd.pcs.baidu.com' in download_url and headers.get('User-Agent') != 'pan.baidu.com':
+                # 根据API文档，只需要设置User-Agent为pan.baidu.com
+                headers = {
+                    'User-Agent': 'pan.baidu.com'
+                }
+                logger.debug("已设置User-Agent为pan.baidu.com并极简化请求头")
+            
+            # 尝试下载，最多重试3次
+            max_retries = 3
+            retry_count = 0
+            
+            while retry_count < max_retries:
+                try:
+                    # 使用会话对象进行请求，这样可以保持cookie状态
+                    session = requests.Session()
+                    session.headers.update(headers)
+                    
+                    # 对于d.pcs.baidu.com域名，直接使用GET请求而不是先HEAD
+                    if 'd.pcs.baidu.com' in download_url:
+                        logger.debug("d.pcs.baidu.com域名，直接使用GET请求")
+                        # 确保使用极简化的请求头
+                        session.headers.clear()
+                        session.headers.update({
+                            'User-Agent': 'pan.baidu.com'
+                        })
+                        logger.debug(f"最终请求头: {session.headers}")
+                        logger.debug(f"最终下载URL: {download_url}")
+                        response = session.get(download_url, stream=True, timeout=30)
+                    else:
+                        # 其他域名使用原有逻辑，先发送HEAD请求
+                        head_response = session.head(download_url, allow_redirects=True, timeout=10)
+                        logger.debug(f"HEAD请求状态码: {head_response.status_code}")
+                        if head_response.headers:
+                            logger.debug(f"HEAD响应头: {head_response.headers}")
+                        
+                        # 如果HEAD请求成功，使用GET请求下载文件
+                        if head_response.status_code == 200:
+                            response = session.get(download_url, stream=True, timeout=30)
+                        else:
+                            # 如果HEAD请求失败但返回了重定向链接，尝试使用重定向链接
+                            if head_response.status_code in (301, 302, 303, 307, 308) and 'Location' in head_response.headers:
+                                redirect_url = head_response.headers['Location']
+                                logger.debug(f"重定向到: {redirect_url[:100]}...")
+                                # 更新Host头以匹配重定向URL
+                                from urllib.parse import urlparse
+                                redirect_host = urlparse(redirect_url).netloc
+                                if redirect_host:
+                                    headers['Host'] = redirect_host
+                                response = session.get(redirect_url, stream=True, timeout=30)
+                            else:
+                                # 如果没有重定向，直接尝试GET请求
+                                logger.debug("HEAD请求失败，尝试直接GET请求")
+                                response = session.get(download_url, stream=True, timeout=30)
+                    
+                    response.raise_for_status()
+                    
+                    # 检查响应状态
+                    if response.status_code == 200:
+                        logger.debug(f"下载成功，开始写入临时文件")
+                        break
+                    else:
+                        logger.warning(f"下载文件返回非200状态码: {response.status_code}，重试中...")
+                        retry_count += 1
+                        
+                except requests.exceptions.RequestException as e:
+                    logger.error(f"下载请求异常: {str(e)}")
+                    if hasattr(e, 'response') and e.response:
+                        logger.debug(f"错误响应状态码: {e.response.status_code}")
+                        logger.debug(f"错误响应头: {e.response.headers}")
+                        if e.response.content:
+                            logger.debug(f"错误响应内容: {e.response.text[:500]}")  # 只记录前500个字符
+                    
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        logger.info(f"第{retry_count}次重试下载...")
+                        time.sleep(1)  # 等待1秒后重试
+                    else:
+                        logger.error(f"重试{max_retries}次后仍然失败")
+                        return None
             
             with open(temp_file, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=8192):
