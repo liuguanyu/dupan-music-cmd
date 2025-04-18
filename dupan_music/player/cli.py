@@ -135,10 +135,9 @@ def play_playlist(playlist_name, index, mode):
         console.print("[red]播放失败[/red]")
         return
     
-    # 设置回调函数
-    def on_play(item):
-        console.print(f"[green]正在播放: {item.server_filename}[/green]")
-        # 重新显示控制提示，确保用户知道可用的控制命令
+    # 定义回调函数
+    def display_controls():
+        """显示播放控制提示"""
         console.print("\n[bold]播放控制:[/bold]")
         console.print("  [cyan]空格[/cyan]: 暂停/恢复")
         console.print("  [cyan]n[/cyan]: 下一曲")
@@ -148,22 +147,39 @@ def play_playlist(playlist_name, index, mode):
         console.print("  [cyan]u[/cyan]: 切换静音")
         console.print("  [cyan]m[/cyan]: 切换播放模式")
         console.print("  [cyan]q[/cyan]: 退出")
-    
+
+    def on_play(item):
+        # 完全清除屏幕
+        console.clear()
+        console.print(f"[green]正在播放: {item.server_filename}[/green]")
+        # 重新显示控制提示
+        display_controls()
+
     def on_pause():
+        console.clear()
         console.print("[yellow]已暂停[/yellow]")
-    
+        # 重新显示控制提示
+        display_controls()
+
     def on_stop():
+        console.clear()
         console.print("[yellow]已停止[/yellow]")
-    
+        
     def on_next(item):
-        console.print(f"[green]下一曲: {item.server_filename}[/green]")
-    
+        # 注意：next方法会调用play方法，play方法会调用on_play回调
+        # 所以这里不需要清屏和显示控制提示，避免重复操作
+        pass
+        
     def on_prev(item):
-        console.print(f"[green]上一曲: {item.server_filename}[/green]")
-    
+        # 注意：prev方法会调用play方法，play方法会调用on_play回调
+        # 所以这里不需要清屏和显示控制提示，避免重复操作
+        pass
+
     def on_complete():
+        console.clear()
         console.print("[green]播放完成[/green]")
     
+    # 设置回调函数
     audio_player.on_play_callback = on_play
     audio_player.on_pause_callback = on_pause
     audio_player.on_stop_callback = on_stop
@@ -269,11 +285,13 @@ def handle_key_press(key, player):
         player.pause()
     elif key == 'n':
         # 下一曲
-        console.print("\n[yellow]正在切换下一曲...[/yellow]")
+        console.clear()
+        console.print("[yellow]正在切换下一曲...[/yellow]")
         player.next()
     elif key == 'p':
         # 上一曲
-        console.print("\n[yellow]正在切换上一曲...[/yellow]")
+        console.clear()
+        console.print("[yellow]正在切换上一曲...[/yellow]")
         player.prev()
     elif key == '+':
         # 增加音量
@@ -358,7 +376,8 @@ def next_track():
         console.print("[yellow]当前没有播放[/yellow]")
         return
     
-    console.print("\n[yellow]正在切换下一曲...[/yellow]")
+    console.clear()
+    console.print("[yellow]正在切换下一曲...[/yellow]")
     result = audio_player.next()
     
     if result:
@@ -375,7 +394,8 @@ def prev_track():
         console.print("[yellow]当前没有播放[/yellow]")
         return
     
-    console.print("\n[yellow]正在切换上一曲...[/yellow]")
+    console.clear()
+    console.print("[yellow]正在切换上一曲...[/yellow]")
     result = audio_player.prev()
     
     if result:
