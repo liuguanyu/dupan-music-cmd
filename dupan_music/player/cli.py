@@ -158,6 +158,7 @@ def play_playlist(playlist_name, index):
     console.print("  [cyan]p[/cyan]: 上一曲")
     console.print("  [cyan]+[/cyan]: 增加音量")
     console.print("  [cyan]-[/cyan]: 减小音量")
+    console.print("  [cyan]u[/cyan]: 切换静音")
     console.print("  [cyan]m[/cyan]: 切换播放模式")
     console.print("  [cyan]q[/cyan]: 退出")
     
@@ -239,9 +240,11 @@ def handle_key_press(key, player):
         player.pause()
     elif key == 'n':
         # 下一曲
+        console.print("[yellow]正在切换下一曲...[/yellow]")
         player.next()
     elif key == 'p':
         # 上一曲
+        console.print("[yellow]正在切换上一曲...[/yellow]")
         player.prev()
     elif key == '+':
         # 增加音量
@@ -268,6 +271,11 @@ def handle_key_press(key, player):
             "random": "随机播放"
         }
         console.print(f"[green]已切换到: {mode_names.get(next_mode.value, next_mode.value)}[/green]")
+    elif key == 'u':
+        # 切换静音
+        is_muted = player.is_muted()
+        player.toggle_mute()
+        console.print(f"[yellow]静音: {'开启' if not is_muted else '关闭'}[/yellow]")
     elif key == 'q':
         # 退出
         player.stop()
@@ -321,6 +329,7 @@ def next_track():
         console.print("[yellow]当前没有播放[/yellow]")
         return
     
+    console.print("[yellow]正在切换下一曲...[/yellow]")
     result = audio_player.next()
     
     if result:
@@ -337,6 +346,7 @@ def prev_track():
         console.print("[yellow]当前没有播放[/yellow]")
         return
     
+    console.print("[yellow]正在切换上一曲...[/yellow]")
     result = audio_player.prev()
     
     if result:
