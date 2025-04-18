@@ -301,7 +301,8 @@ class InteractiveShell:
     def exit_shell(self, *args, **kwargs):
         """退出shell"""
         console.print("[bold green]感谢使用百度盘音乐命令行播放器，再见！[/bold green]")
-        sys.exit(0)
+        # 不使用sys.exit(0)，而是通过抛出异常来退出当前shell
+        raise EOFError("退出shell")
 
     def parse_command(self, command_line: str) -> List[str]:
         """解析命令行"""
@@ -335,6 +336,9 @@ class InteractiveShell:
             except SystemExit:
                 # 忽略Click的系统退出
                 pass
+            except EOFError:
+                # 退出shell命令，向上传递异常
+                raise
             except Exception as e:
                 console.print(f"[red]命令执行错误: {str(e)}[/red]")
                 logger.exception(f"命令执行错误: {str(e)}")
@@ -382,7 +386,9 @@ class InteractiveShell:
         console.print("提示: 按Tab键可以自动补全命令，方向键可以浏览历史记录")
         console.print("      Ctrl+R 搜索历史记录，Ctrl+Space 显示所有可能的补全")
         
-        while True:
+        # 使用running标志控制shell运行
+        running = True
+        while running:
             try:
                 # 获取用户输入
                 command_line = self.session.prompt(
@@ -403,8 +409,9 @@ class InteractiveShell:
                 # Ctrl+C，继续循环
                 continue
             except EOFError:
-                # Ctrl+D，退出
-                self.exit_shell()
+                # Ctrl+D 或 exit/quit 命令，退出shell
+                running = False
+                break
             except Exception as e:
                 console.print(f"[red]错误: {str(e)}[/red]")
                 logger.exception(f"Shell错误: {str(e)}")
