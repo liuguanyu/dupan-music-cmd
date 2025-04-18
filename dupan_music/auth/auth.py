@@ -101,7 +101,13 @@ class BaiduPanAuth:
                 return self.refresh_token()
             return False
         
-        return True
+        # 保存认证信息到文件
+        try:
+            write_file(self.auth_file, json.dumps(self.auth_info, ensure_ascii=False, indent=4))
+            return True
+        except Exception as e:
+            LOGGER.error(f"保存认证信息失败: {e}")
+            return False
     
     def is_authenticated(self) -> bool:
         """
@@ -110,6 +116,10 @@ class BaiduPanAuth:
         Returns:
             bool: 是否已认证
         """
+        # 检查是否已登录
+        if not self.auth_info.get("is_logged_in", False):
+            return False
+            
         # 检查是否有访问令牌
         if not self.auth_info["access_token"]:
             return False
@@ -182,6 +192,7 @@ class BaiduPanAuth:
             self.auth_info["expires_in"] = data["expires_in"]
             self.auth_info["expires_at"] = time.time() + data["expires_in"]
             self.auth_info["scope"] = data["scope"]
+            self.auth_info["is_logged_in"] = True
             
             # 保存认证信息
             return self._save_auth_info()
@@ -222,6 +233,7 @@ class BaiduPanAuth:
             self.auth_info["refresh_token"] = data["refresh_token"]
             self.auth_info["expires_in"] = data["expires_in"]
             self.auth_info["expires_at"] = time.time() + data["expires_in"]
+            self.auth_info["is_logged_in"] = True
             
             # 保存认证信息
             return self._save_auth_info()
@@ -257,6 +269,7 @@ class BaiduPanAuth:
                 "scope": "",
                 "session_key": "",
                 "session_secret": "",
+                "is_logged_in": False,
             }
             
             # 保存认证信息
@@ -407,6 +420,7 @@ class BaiduPanAuth:
                     self.auth_info["expires_in"] = data["expires_in"]
                     self.auth_info["expires_at"] = time.time() + data["expires_in"]
                     self.auth_info["scope"] = data["scope"]
+                    self.auth_info["is_logged_in"] = True
                     
                     # 保存认证信息
                     write_file(self.auth_file, json.dumps(self.auth_info, ensure_ascii=False, indent=4))

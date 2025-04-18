@@ -13,6 +13,19 @@ from typing import Optional
 from dupan_music.config.config import CONFIG
 from dupan_music.utils.file_utils import ensure_dir
 
+def get_logger(name: str = "dupan_music", level: Optional[str] = None) -> logging.Logger:
+    """
+    获取日志记录器
+    
+    Args:
+        name: 日志记录器名称
+        level: 日志级别，如果为None，则使用配置中的级别
+        
+    Returns:
+        logging.Logger: 日志记录器
+    """
+    return setup_logger(name, level)
+
 
 def setup_logger(name: str = "dupan_music", level: Optional[str] = None) -> logging.Logger:
     """

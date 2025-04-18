@@ -385,6 +385,9 @@ def human_readable_size(size_bytes: int) -> str:
     
     return f"{size_bytes:.2f}{size_name[i]}"
 
+# 为了兼容性，提供format_size作为human_readable_size的别名
+format_size = human_readable_size
+
 
 def split_file(file_path: str, chunk_size: int, output_dir: Optional[str] = None) -> List[str]:
     """
