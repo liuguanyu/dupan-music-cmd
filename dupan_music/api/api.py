@@ -240,7 +240,7 @@ class BaiduPanAPI:
     def get_audio_files(self, dir_path: str = '/', order: str = 'name', 
                        desc: bool = False, limit: int = 1000) -> List[Dict]:
         """
-        获取音频文件列表
+        获取音频文件列表（非递归）
         
         Args:
             dir_path: 目录路径
@@ -254,7 +254,36 @@ class BaiduPanAPI:
         # 支持的音频文件扩展名
         audio_extensions = ['.mp3', '.m4a', '.flac', '.wav', '.ogg', '.aac', '.wma']
         
-        # 获取文件列表
+        # 获取文件列表（非递归）
+        files = self.get_file_list(dir_path, order, desc, limit)
+        
+        # 过滤音频文件
+        audio_files = [
+            file for file in files 
+            if file.get('isdir') == 0 and 
+            os.path.splitext(file.get('server_filename', ''))[1].lower() in audio_extensions
+        ]
+        
+        return audio_files
+    
+    def get_audio_files_recursive(self, dir_path: str = '/', order: str = 'name', 
+                                desc: bool = False, limit: int = 1000) -> List[Dict]:
+        """
+        递归获取音频文件列表
+        
+        Args:
+            dir_path: 目录路径
+            order: 排序方式 ('name', 'time', 'size')
+            desc: 是否降序排序
+            limit: 返回条目数量限制
+            
+        Returns:
+            音频文件列表
+        """
+        # 支持的音频文件扩展名
+        audio_extensions = ['.mp3', '.m4a', '.flac', '.wav', '.ogg', '.aac', '.wma']
+        
+        # 获取文件列表（递归）
         files = self.get_file_list_recursive(dir_path, order, desc, limit)
         
         # 过滤音频文件
