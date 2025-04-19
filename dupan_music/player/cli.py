@@ -196,16 +196,8 @@ def play_playlist(playlist_name, index, mode):
     }.get(play_mode, "未知模式")
     console.print(f"[bold]当前播放模式:[/bold] [yellow]{play_mode_display}[/yellow]")
     
-    # 交互式控制
-    console.print("\n[bold]播放控制:[/bold]")
-    console.print("  [cyan]空格[/cyan]: 暂停/恢复")
-    console.print("  [cyan]n[/cyan]: 下一曲")
-    console.print("  [cyan]p[/cyan]: 上一曲")
-    console.print("  [cyan]+[/cyan]: 增加音量")
-    console.print("  [cyan]-[/cyan]: 减小音量")
-    console.print("  [cyan]u[/cyan]: 切换静音")
-    console.print("  [cyan]m[/cyan]: 切换播放模式")
-    console.print("  [cyan]q[/cyan]: 退出")
+    # 显示播放控制提示
+    display_controls()
     
     # 显示进度条
     with Progress(
