@@ -13,6 +13,7 @@ import random
 from typing import Dict, List, Optional, Union, Callable, Literal
 from enum import Enum
 import vlc
+from dupan_music.config.config import CONFIG
 try:
     from pydub import AudioSegment
     PYDUB_AVAILABLE = True
@@ -32,8 +33,8 @@ logger = get_logger(__name__)
 class AudioPlayer:
     """音频播放器"""
     
-    # 支持的音频格式
-    SUPPORTED_FORMATS = ['.mp3', '.m4a', '.ogg', '.wav', '.flac', '.aiff', '.aac', '.wma']
+    # 从配置中读取支持的音频格式
+    SUPPORTED_FORMATS = CONFIG.get("music.supported_formats", ['.mp3', '.flac', '.wav', '.aac', '.ogg'])
     
     def __init__(self, api: Optional[BaiduPanAPI] = None, playlist_manager: Optional[PlaylistManager] = None):
         """

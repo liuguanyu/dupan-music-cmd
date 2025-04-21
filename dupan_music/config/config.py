@@ -51,7 +51,7 @@ class Config:
             # 音乐相关
             "music": {
                 "default_dir": "/我的音乐",  # 默认音乐目录
-                "supported_formats": [".mp3", ".flac", ".wav", ".aac", ".ogg"],  # 支持的音乐格式
+                "supported_formats": [".mp3", ".flac", ".wav", ".aac", ".ogg", ".m4a", ".wma", ".aiff", ".alac", ".ape", ".opus"],  # 支持的音乐格式
                 "default_player": "",  # 默认播放器
             },
             
