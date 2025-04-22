@@ -161,10 +161,9 @@ def play_playlist(playlist_name, index, mode):
         display_controls()
 
     def on_pause():
-        console.clear()
-        console.print("[yellow]已暂停[/yellow]")
-        # 重新显示控制提示
-        display_controls()
+        # 不清屏，只更新状态
+        # 状态会在进度条中显示
+        pass
 
     def on_stop():
         console.clear()
@@ -212,11 +211,11 @@ def play_playlist(playlist_name, index, mode):
         TextColumn("[bold blue]{task.fields[status]}"),
         BarColumn(),
         TextColumn("[cyan]{task.fields[time]}"),
-        TextColumn("音量: [yellow]{task.fields[volume]}%"),
+        TextColumn("音量: [yellow]{task.fields[volume]}"),
         refresh_per_second=5,
     ) as progress:
         task = progress.add_task("", total=None, time="00:00 / 00:00", 
-                                volume=audio_player.get_volume(),
+                                volume=f"{audio_player.get_volume()}%",
                                 status=f"播放中 - {playlist.items[index].server_filename}")
         
         try:
@@ -311,10 +310,12 @@ def handle_key_press(key, player):
         # 增加音量
         current_volume = player.get_volume()
         player.set_volume(current_volume + 5)
+        # 不打印任何内容，状态会在进度条中更新
     elif key == '-':
         # 减小音量
         current_volume = player.get_volume()
         player.set_volume(current_volume - 5)
+        # 不打印任何内容，状态会在进度条中更新
     elif key == 'm':
         # 切换播放模式
         current_mode = player.play_mode
@@ -334,9 +335,8 @@ def handle_key_press(key, player):
         console.print(f"[green]已切换到: {mode_names.get(next_mode.value, next_mode.value)}[/green]")
     elif key == 'u':
         # 切换静音
-        is_muted = player.is_muted()
         player.toggle_mute()
-        console.print(f"[yellow]静音: {'开启' if not is_muted else '关闭'}[/yellow]")
+        # 不打印任何内容，状态会在进度条中更新
     elif key == 'q':
         # 退出
         console.clear()

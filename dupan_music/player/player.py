@@ -444,7 +444,7 @@ class AudioPlayer:
                 if self.on_play_callback:
                     self.on_play_callback(self.current_item)
                 
-                logger.info(f"正在播放: {self.current_item.server_filename}")
+                logger.debug(f"正在播放: {self.current_item.server_filename}")
                 return True
             else:
                 logger.error(f"播放失败: {result}")
@@ -468,7 +468,7 @@ class AudioPlayer:
             # 恢复播放
             self.player.play()
             self.is_paused = False
-            logger.info("恢复播放")
+            logger.debug("恢复播放")
             
             # 调用播放回调
             if self.on_play_callback:
@@ -477,7 +477,7 @@ class AudioPlayer:
             # 暂停播放
             self.player.pause()
             self.is_paused = True
-            logger.info("暂停播放")
+            logger.debug("暂停播放")
             
             # 调用暂停回调
             if self.on_pause_callback:
@@ -507,7 +507,7 @@ class AudioPlayer:
         if self.on_stop_callback:
             self.on_stop_callback()
         
-        logger.info("停止播放")
+        logger.debug("停止播放")
         return True
     
     def set_play_mode(self, mode: 'PlayMode') -> None:
@@ -518,7 +518,7 @@ class AudioPlayer:
             mode: 播放模式
         """
         self.play_mode = mode
-        logger.info(f"设置播放模式: {mode.value}")
+        logger.debug(f"设置播放模式: {mode.value}")
     
     def get_play_mode(self) -> str:
         """
@@ -638,7 +638,7 @@ class AudioPlayer:
         
         # 设置音量
         self.player.audio_set_volume(volume)
-        logger.info(f"设置音量: {volume}")
+        logger.debug(f"设置音量: {volume}")
         return True
     
     def get_volume(self) -> int:
@@ -664,7 +664,7 @@ class AudioPlayer:
         # 切换静音状态
         is_muted = self.player.audio_get_mute()
         self.player.audio_set_mute(not is_muted)
-        logger.info(f"静音状态: {'开启' if not is_muted else '关闭'}")
+        logger.debug(f"静音状态: {'开启' if not is_muted else '关闭'}")
         return True
         
     def is_muted(self) -> bool:
@@ -707,7 +707,7 @@ class AudioPlayer:
         
         # 设置位置
         self.player.set_position(position)
-        logger.info(f"设置播放位置: {position:.2f}")
+        logger.debug(f"设置播放位置: {position:.2f}")
         return True
     
     def get_time(self) -> int:
