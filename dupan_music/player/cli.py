@@ -148,10 +148,15 @@ def play_playlist(playlist_name, index, mode):
         console.print("  [cyan]m[/cyan]: 切换播放模式")
         console.print("  [cyan]q[/cyan]: 退出")
 
+    def on_download_start(item):
+        """下载开始回调"""
+        console.clear()
+        console.print("[yellow]缓冲中......[/yellow]")
+
     def on_play(item):
         # 完全清除屏幕
         console.clear()
-        console.print(f"[green]正在播放: {item.server_filename}[/green]")
+        console.print(f"[green]正在播放......[/green]")
         # 重新显示控制提示
         display_controls()
 
@@ -187,6 +192,9 @@ def play_playlist(playlist_name, index, mode):
     audio_player.on_prev_callback = on_prev
     audio_player.on_complete_callback = on_complete
     
+    # 在播放前显示缓冲信息
+    on_download_start(playlist.items[index])
+    
     # 显示当前播放模式
     play_mode = audio_player.get_play_mode()
     play_mode_display = {
@@ -201,13 +209,15 @@ def play_playlist(playlist_name, index, mode):
     
     # 显示进度条
     with Progress(
-        TextColumn("[bold blue]{task.description}"),
+        TextColumn("[bold blue]{task.fields[status]}"),
         BarColumn(),
         TextColumn("[cyan]{task.fields[time]}"),
         TextColumn("音量: [yellow]{task.fields[volume]}%"),
         refresh_per_second=5,
     ) as progress:
-        task = progress.add_task("播放中...", total=None, time="00:00 / 00:00", volume=audio_player.get_volume())
+        task = progress.add_task("", total=None, time="00:00 / 00:00", 
+                                volume=audio_player.get_volume(),
+                                status=f"播放中 - {playlist.items[index].server_filename}")
         
         try:
             while audio_player.is_playing:
@@ -220,12 +230,24 @@ def play_playlist(playlist_name, index, mode):
                     current_time_sec = current_time / 1000
                     total_time_sec = total_time / 1000
                     
+                    # 更新状态显示
+                    status = "播放中"
+                    if audio_player.is_paused:
+                        status = "已暂停"
+                    
+                    # 添加静音状态
+                    volume_display = audio_player.get_volume()
+                    volume_text = f"{volume_display}%"
+                    if audio_player.is_muted():
+                        volume_text += " (静音)"
+                    
                     progress.update(
                         task, 
                         completed=current_time,
                         total=total_time,
                         time=f"{format_time(current_time_sec)} / {format_time(total_time_sec)}",
-                        volume=audio_player.get_volume()
+                        volume=volume_text,
+                        status=f"{status} - {audio_player.current_item.server_filename}"
                     )
                 
                 # 检查按键
@@ -278,12 +300,12 @@ def handle_key_press(key, player):
     elif key == 'n':
         # 下一曲
         console.clear()
-        console.print("[yellow]正在切换下一曲...[/yellow]")
+        console.print("[yellow]缓冲中......[/yellow]")
         player.next()
     elif key == 'p':
         # 上一曲
         console.clear()
-        console.print("[yellow]正在切换上一曲...[/yellow]")
+        console.print("[yellow]缓冲中......[/yellow]")
         player.prev()
     elif key == '+':
         # 增加音量
@@ -317,6 +339,8 @@ def handle_key_press(key, player):
         console.print(f"[yellow]静音: {'开启' if not is_muted else '关闭'}[/yellow]")
     elif key == 'q':
         # 退出
+        console.clear()
+        console.print("[yellow]缓冲中......[/yellow]")
         player.stop()
 
 @player.command("play-file")
